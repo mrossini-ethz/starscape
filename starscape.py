@@ -78,7 +78,7 @@ def generate_starscape():
     # Get the scene camera
     camera = bpy.context.scene.camera
     if not camera or camera.data.type != "PERSP":
-        sys.exit(1)
+        return False
 
     # Create stars positions (mesh data consisting only of vertices, radius = 1)
     vertices = []
@@ -114,8 +114,9 @@ def generate_starscape():
     ### Material ###########################################################################
 
     # Create the new material "Star Shader"
-    shader = bpy.data.materials["Star Shader"]
-    if not shader:
+    try:
+        shader = bpy.data.materials["Star Shader"]
+    except KeyError:
         shader = bpy.data.materials.new("Star Shader")
 
     # Use nodes
@@ -300,6 +301,8 @@ def generate_starscape():
     # Add the object
     bpy.context.collection.objects.link(obj)
     bpy.context.collection.objects.link(obj2)
+
+    return True
 
 if __name__ == "__main__":
     generate_starscape()
