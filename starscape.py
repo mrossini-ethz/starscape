@@ -58,6 +58,14 @@ def hide_node_outputs(node):
         if not socket.is_linked:
             socket.hide = True
 
+def make_math_node(nodes, function, x, y, default_1 = 0.5, default_2 = 0.5):
+    node = nodes.new("ShaderNodeMath")
+    node.operation = function
+    node.location = (x, y)
+    node.inputs[0].default_value = default_1
+    node.inputs[1].default_value = default_2
+    return node
+
 # Set material
 # Create the new material "Star Shader"
 shader = bpy.data.materials["Star Shader"]
@@ -80,9 +88,7 @@ emission.location = (-200, 0)
 node_tree.links.new(material_output.inputs["Surface"], emission.outputs["Emission"])
 
 # Add a math node for multiplication with light path
-math_lightpath = nodes.new("ShaderNodeMath")
-math_lightpath.operation = "MULTIPLY"
-math_lightpath.location = (-400, 0)
+math_lightpath = make_math_node(nodes, "MULTIPLY", -400, 0)
 light_path = nodes.new("ShaderNodeLightPath")
 light_path.location = (-600, 100)
 node_tree.links.new(math_lightpath.inputs[0], light_path.outputs["Is Camera Ray"])
@@ -90,10 +96,7 @@ node_tree.links.new(emission.inputs["Strength"], math_lightpath.outputs[0])
 hide_node_outputs(light_path)
 
 # Add a math node to control the intensity
-math_intensity = nodes.new("ShaderNodeMath")
-math_intensity.operation = "MULTIPLY"
-math_intensity.inputs[1].default_value = 15 # <<<<<<<<<<<<<<<<<<<<<<<<<<<< FXIME
-math_intensity.location = (-600, 0)
+math_intensity = make_math_node(nodes, "MULTIPLY", -600, 0, default_2 = 15)
 node_tree.links.new(math_lightpath.inputs[1], math_intensity.outputs[0])
 
 # Add a node group for random intensity
@@ -106,38 +109,23 @@ group.outputs.new("NodeSocketFloat", "Intensity")
 group_outputs.location = (1200, 0)
 
 # Add a math node to prepare random input
-math_inp_fact = group.nodes.new("ShaderNodeMath")
-math_inp_fact.operation = "MULTIPLY"
-math_inp_fact.inputs[1].default_value = 9100
-math_inp_fact.location = (200, 0)
+math_inp_fact = make_math_node(group.nodes, "MULTIPLY", 200, 0, default_2 = 9100)
 group.links.new(math_inp_fact.inputs[0], group_inputs.outputs[0])
 
 # Add a math node to prepare input
-math_pre_div = group.nodes.new("ShaderNodeMath")
-math_pre_div.operation = "DIVIDE"
-math_pre_div.inputs[1].default_value = 3.56
-math_pre_div.location = (400, 0)
+math_pre_div = make_math_node(group.nodes, "DIVIDE", 400, 0, default_2 = 3.56)
 group.links.new(math_pre_div.inputs[0], math_inp_fact.outputs[0])
 
 # Add a math node to convert visual magnitude
-math_mag_log = group.nodes.new("ShaderNodeMath")
-math_mag_log.operation = "LOGARITHM"
-math_mag_log.inputs[1].default_value = math.e
-math_mag_log.location = (600, 0)
+math_mag_log = make_math_node(group.nodes, "LOGARITHM", 600, 0, default_2 = math.e)
 group.links.new(math_mag_log.inputs[0], math_pre_div.outputs[0])
 
 # Add a math node to convert visual magnitude
-math_mag_div = group.nodes.new("ShaderNodeMath")
-math_mag_div.operation = "DIVIDE"
-math_mag_div.inputs[1].default_value = -1.21
-math_mag_div.location = (800, 0)
+math_mag_div = make_math_node(group.nodes, "DIVIDE", 800, 0, default_2 = -1.21)
 group.links.new(math_mag_div.inputs[0], math_mag_log.outputs[0])
 
 # Add a math node to convert visual magnitude
-math_mag_power = group.nodes.new("ShaderNodeMath")
-math_mag_power.operation = "POWER"
-math_mag_power.inputs[0].default_value = 2.512
-math_mag_power.location = (1000, 0)
+math_mag_power = make_math_node(group.nodes, "POWER", 1000, 0, default_1 = 2.512)
 group.links.new(math_mag_power.inputs[1], math_mag_div.outputs[0])
 group.links.new(group_outputs.inputs[0], math_mag_power.outputs[0])
 
@@ -156,16 +144,10 @@ group.outputs.new("NodeSocketFloat", "Random 2")
 group_outputs.location = (600, 0)
 group.links.new(group_outputs.inputs["Random 1"], group_inputs.outputs["Random"])
 
-math_rsplit_mult = group.nodes.new("ShaderNodeMath")
-math_rsplit_mult.operation = "MULTIPLY"
-math_rsplit_mult.inputs[1].default_value = 1000
-math_rsplit_mult.location = (200, -100)
+math_rsplit_mult = make_math_node(group.nodes, "MULTIPLY", 200, -100, default_2 = 1000)
 group.links.new(math_rsplit_mult.inputs[0], group_inputs.outputs["Random"])
 
-math_rsplit_mod = group.nodes.new("ShaderNodeMath")
-math_rsplit_mod.operation = "MODULO"
-math_rsplit_mod.inputs[1].default_value = 1
-math_rsplit_mod.location = (400, -100)
+math_rsplit_mod = make_math_node(group.nodes, "MODULO", 400, -100, default_2 = 1)
 group.links.new(math_rsplit_mod.inputs[0], math_rsplit_mult.outputs[0])
 group.links.new(group_outputs.inputs["Random 2"], math_rsplit_mod.outputs[0])
 
@@ -187,16 +169,10 @@ group_outputs = group.nodes.new("NodeGroupOutput")
 group.outputs.new("NodeSocketColor", "Color")
 group_outputs.location = (800, 0)
 
-math_kelvin_width = group.nodes.new("ShaderNodeMath")
-math_kelvin_width.operation = "MULTIPLY"
-math_kelvin_width.inputs[1].default_value = 17000
-math_kelvin_width.location = (200, 0)
+math_kelvin_width = make_math_node(group.nodes, "MULTIPLY", 200, 0, default_2 = 17000)
 group.links.new(math_kelvin_width.inputs[0], group_inputs.outputs["Random"])
 
-math_kelvin_offset = group.nodes.new("ShaderNodeMath")
-math_kelvin_offset.operation = "ADD"
-math_kelvin_offset.inputs[1].default_value = 3000
-math_kelvin_offset.location = (400, 0)
+math_kelvin_offset = make_math_node(group.nodes, "ADD", 400, 0, default_2 = 3000)
 group.links.new(math_kelvin_offset.inputs[0], math_kelvin_width.outputs[0])
 
 blackbody = group.nodes.new("ShaderNodeBlackbody")
