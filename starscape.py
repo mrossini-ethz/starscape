@@ -107,7 +107,7 @@ def generate_starscape():
         vertices.append((x, y, z))
 
     # Load/create the star location mesh
-    stars_obj = create_or_reuse_mesh_object("stars")
+    stars_obj = create_or_reuse_mesh_object("Starscape")
     # Set the mesh to the star data
     stars_obj.data.from_pydata(vertices, [], [])
 
@@ -123,7 +123,7 @@ def generate_starscape():
     vertices.append((+0, 0, +2 * s))
     vertices.append((-q, 0, -1 * s))
     vertices.append((+q, 0, -1 * s))
-    template_obj = create_or_reuse_mesh_object("star_template")
+    template_obj = create_or_reuse_mesh_object("Star_Template")
     template_obj.data.from_pydata(vertices, [(0, 1), (0, 2), (1, 2)], [(0, 1, 2)])
 
     ### Material ###########################################################################
