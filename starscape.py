@@ -95,6 +95,9 @@ def generate_starscape():
     if not camera or camera.data.type != "PERSP":
         return False
 
+    # Initialize random number generator
+    random.seed(0)
+
     # Create stars positions (mesh data consisting only of vertices, radius = 1)
     vertices = []
     for i in range(100000):
