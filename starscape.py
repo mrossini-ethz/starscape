@@ -100,7 +100,7 @@ def generate_starscape():
 
     # Create stars positions (mesh data consisting only of vertices, radius = 1)
     vertices = []
-    for i in range(100000):
+    for i in range(10000):
         # Generate a random location at random across the sky
         phi, theta = random_spherical_coordinates()
         x, y, z = spherical_to_cartesian_coordinates(1, phi, theta)
