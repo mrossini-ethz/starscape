@@ -47,7 +47,6 @@ def connect_nodes(tree, *args):
 
     # Make n links
     n = (len(args) - 1) // 3
-    print(n)
     for i in range(n):
         node_a = args[3 * i]
         node_b = args[3 * (i + 1)]
