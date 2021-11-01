@@ -58,6 +58,17 @@ def hide_node_outputs(node):
         if not socket.is_linked:
             socket.hide = True
 
+def make_node(nodes, node_type, x, y):
+    node = nodes.new(node_type)
+    node.location = (x, y)
+    return node
+
+def make_group_node(nodes, group, x, y):
+    node = nodes.new("ShaderNodeGroup")
+    node.node_tree = group
+    node.location = (x, y)
+    return node
+
 def make_math_node(nodes, function, x, y, default_1 = 0.5, default_2 = 0.5):
     node = nodes.new("ShaderNodeMath")
     node.operation = function
@@ -92,17 +103,14 @@ nodes = node_tree.nodes
 nodes.clear()
 
 # Add Material Output node
-material_output = nodes.new("ShaderNodeOutputMaterial")
-material_output.location = (0, 0)
+material_output = make_node(nodes, "ShaderNodeOutputMaterial", 0, 0)
 
 # Add an Emission Shader node
-emission = nodes.new('ShaderNodeEmission')
-emission.location = (-200, 0)
+emission = make_node(nodes, 'ShaderNodeEmission', -200, 0)
 
 # Add a math node for multiplication with light path
 math_lightpath = make_math_node(nodes, "MULTIPLY", -400, 0)
-light_path = nodes.new("ShaderNodeLightPath")
-light_path.location = (-600, 100)
+light_path = make_node(nodes, "ShaderNodeLightPath", -600, 100)
 connect_nodes(node_tree, light_path, "Is Camera Ray", 0, math_lightpath)
 
 # Add a math node to control the intensity
@@ -135,9 +143,7 @@ connect_nodes(group, group_inputs, "Random",
     1, math_mag_power, 0,
     "Intensity", group_outputs)
 # Add group
-random_magnitude = nodes.new("ShaderNodeGroup")
-random_magnitude.node_tree = group
-random_magnitude.location = (-800, 0)
+random_magnitude = make_group_node(nodes, group, -800, 0)
 
 # Make node group to split single random value into two
 group = bpy.data.node_groups.new("Random Splitter", "ShaderNodeTree")
@@ -159,13 +165,10 @@ connect_nodes(group, group_inputs, "Random",
     0, math_rsplit_mod, 0,
     "Random 2", group_outputs)
 # Add group
-random_splitter = nodes.new("ShaderNodeGroup")
-random_splitter.node_tree = group
-random_splitter.location = (-1000, 0)
+random_splitter = make_group_node(nodes, group, -1000, 0)
 
 # Add geometry input node
-geometry_input = nodes.new("ShaderNodeObjectInfo")
-geometry_input.location = (-1200, 0)
+geometry_input = make_node(nodes, "ShaderNodeObjectInfo", -1200, 0)
 
 # Connect main node chain
 connect_nodes(node_tree, geometry_input, "Random",
@@ -191,8 +194,7 @@ math_kelvin_width = make_math_node(group.nodes, "MULTIPLY", 200, 0, default_2 = 
 # Color temperature offset
 math_kelvin_offset = make_math_node(group.nodes, "ADD", 400, 0, default_2 = 3000)
 # Blackbody color
-blackbody = group.nodes.new("ShaderNodeBlackbody")
-blackbody.location = (600, 0)
+blackbody = make_node(group.nodes, "ShaderNodeBlackbody", 600, 0)
 # Connect nodes
 connect_nodes(group, group_inputs, "Random",
     0, math_kelvin_width, 0,
@@ -200,9 +202,7 @@ connect_nodes(group, group_inputs, "Random",
     "Temperature", blackbody, "Color",
     "Color", group_outputs)
 # Add group
-random_color = nodes.new("ShaderNodeGroup")
-random_color.node_tree = group
-random_color.location = (-600, -200)
+random_color = make_group_node(nodes, group, -600, -200)
 
 # Connect color chain
 connect_nodes(node_tree, random_splitter, "Random 2",
