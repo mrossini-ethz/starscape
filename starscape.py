@@ -51,7 +51,7 @@ mesh = bpy.data.meshes.new("star_template_mesh")
 obj2 = bpy.data.objects.new("star_template", mesh)
 mesh.from_pydata(vertices, [(0, 1), (0, 2), (1, 2)], [(0, 1, 2)])
 
-#######################################################################################
+### Material ###############################################################################
 
 def hide_node_outputs(node):
     for socket in node.outputs:
@@ -66,7 +66,20 @@ def make_math_node(nodes, function, x, y, default_1 = 0.5, default_2 = 0.5):
     node.inputs[1].default_value = default_2
     return node
 
-# Set material
+def connect_nodes(tree, *args):
+    if len(args) < 4 or (len(args) - 4) % 3 != 0:
+        raise Exception("Invalid number of arguments!")
+
+    # Make n links
+    n = (len(args) - 1) // 3
+    print(n)
+    for i in range(n):
+        node_a = args[3 * i]
+        node_b = args[3 * (i + 1)]
+        output = args[3 * i + 1]
+        input = args[3 * i + 2]
+        tree.links.new(node_b.inputs[input], node_a.outputs[output])
+
 # Create the new material "Star Shader"
 shader = bpy.data.materials["Star Shader"]
 if not shader:
@@ -85,19 +98,15 @@ material_output.location = (0, 0)
 # Add an Emission Shader node
 emission = nodes.new('ShaderNodeEmission')
 emission.location = (-200, 0)
-node_tree.links.new(material_output.inputs["Surface"], emission.outputs["Emission"])
 
 # Add a math node for multiplication with light path
 math_lightpath = make_math_node(nodes, "MULTIPLY", -400, 0)
 light_path = nodes.new("ShaderNodeLightPath")
 light_path.location = (-600, 100)
-node_tree.links.new(math_lightpath.inputs[0], light_path.outputs["Is Camera Ray"])
-node_tree.links.new(emission.inputs["Strength"], math_lightpath.outputs[0])
-hide_node_outputs(light_path)
+connect_nodes(node_tree, light_path, "Is Camera Ray", 0, math_lightpath)
 
 # Add a math node to control the intensity
 math_intensity = make_math_node(nodes, "MULTIPLY", -600, 0, default_2 = 15)
-node_tree.links.new(math_lightpath.inputs[1], math_intensity.outputs[0])
 
 # Add a node group for random intensity
 group = bpy.data.node_groups.new("Random Intensity", "ShaderNodeTree")
@@ -107,33 +116,30 @@ group_inputs.location = (0, 0)
 group_outputs = group.nodes.new("NodeGroupOutput")
 group.outputs.new("NodeSocketFloat", "Intensity")
 group_outputs.location = (1200, 0)
-
 # Add a math node to prepare random input
 math_inp_fact = make_math_node(group.nodes, "MULTIPLY", 200, 0, default_2 = 9100)
-group.links.new(math_inp_fact.inputs[0], group_inputs.outputs[0])
-
 # Add a math node to prepare input
 math_pre_div = make_math_node(group.nodes, "DIVIDE", 400, 0, default_2 = 3.56)
-group.links.new(math_pre_div.inputs[0], math_inp_fact.outputs[0])
-
 # Add a math node to convert visual magnitude
 math_mag_log = make_math_node(group.nodes, "LOGARITHM", 600, 0, default_2 = math.e)
-group.links.new(math_mag_log.inputs[0], math_pre_div.outputs[0])
-
 # Add a math node to convert visual magnitude
 math_mag_div = make_math_node(group.nodes, "DIVIDE", 800, 0, default_2 = -1.21)
-group.links.new(math_mag_div.inputs[0], math_mag_log.outputs[0])
-
 # Add a math node to convert visual magnitude
 math_mag_power = make_math_node(group.nodes, "POWER", 1000, 0, default_1 = 2.512)
-group.links.new(math_mag_power.inputs[1], math_mag_div.outputs[0])
-group.links.new(group_outputs.inputs[0], math_mag_power.outputs[0])
-
+# Connect nodes
+connect_nodes(group, group_inputs, "Random",
+    0, math_inp_fact, 0,
+    0, math_pre_div, 0,
+    0, math_mag_log, 0,
+    0, math_mag_div, 0,
+    1, math_mag_power, 0,
+    "Intensity", group_outputs)
+# Add group
 random_magnitude = nodes.new("ShaderNodeGroup")
 random_magnitude.node_tree = group
 random_magnitude.location = (-800, 0)
-node_tree.links.new(math_intensity.inputs[0], random_magnitude.outputs["Intensity"])
 
+# Make node group to split single random value into two
 group = bpy.data.node_groups.new("Random Splitter", "ShaderNodeTree")
 group_inputs = group.nodes.new("NodeGroupInput")
 group.inputs.new('NodeSocketFloat', "Random")
@@ -142,25 +148,37 @@ group_outputs = group.nodes.new("NodeGroupOutput")
 group.outputs.new("NodeSocketFloat", "Random 1")
 group.outputs.new("NodeSocketFloat", "Random 2")
 group_outputs.location = (600, 0)
-group.links.new(group_outputs.inputs["Random 1"], group_inputs.outputs["Random"])
-
+# Multiplication by large factor
 math_rsplit_mult = make_math_node(group.nodes, "MULTIPLY", 200, -100, default_2 = 1000)
-group.links.new(math_rsplit_mult.inputs[0], group_inputs.outputs["Random"])
-
+# Use only decimals
 math_rsplit_mod = make_math_node(group.nodes, "MODULO", 400, -100, default_2 = 1)
-group.links.new(math_rsplit_mod.inputs[0], math_rsplit_mult.outputs[0])
-group.links.new(group_outputs.inputs["Random 2"], math_rsplit_mod.outputs[0])
-
+# Connect nodes
+connect_nodes(group, group_inputs, "Random", "Random 1", group_outputs)
+connect_nodes(group, group_inputs, "Random",
+    0, math_rsplit_mult, 0,
+    0, math_rsplit_mod, 0,
+    "Random 2", group_outputs)
+# Add group
 random_splitter = nodes.new("ShaderNodeGroup")
 random_splitter.node_tree = group
 random_splitter.location = (-1000, 0)
-node_tree.links.new(random_magnitude.inputs["Random"], random_splitter.outputs["Random 1"])
 
+# Add geometry input node
 geometry_input = nodes.new("ShaderNodeObjectInfo")
 geometry_input.location = (-1200, 0)
-node_tree.links.new(random_splitter.inputs["Random"], geometry_input.outputs["Random"])
+
+# Connect main node chain
+connect_nodes(node_tree, geometry_input, "Random",
+    "Random", random_splitter, "Random 1",
+    "Random", random_magnitude, "Intensity",
+    0, math_intensity, 0,
+    1, math_lightpath, 0,
+    "Strength", emission, "Emission",
+    "Surface", material_output)
+hide_node_outputs(light_path)
 hide_node_outputs(geometry_input)
 
+# Make node group for star color
 group = bpy.data.node_groups.new("Random Star Color", "ShaderNodeTree")
 group_inputs = group.nodes.new("NodeGroupInput")
 group.inputs.new('NodeSocketFloat', "Random")
@@ -168,23 +186,28 @@ group_inputs.location = (0, 0)
 group_outputs = group.nodes.new("NodeGroupOutput")
 group.outputs.new("NodeSocketColor", "Color")
 group_outputs.location = (800, 0)
-
+# Color temperature width
 math_kelvin_width = make_math_node(group.nodes, "MULTIPLY", 200, 0, default_2 = 17000)
-group.links.new(math_kelvin_width.inputs[0], group_inputs.outputs["Random"])
-
+# Color temperature offset
 math_kelvin_offset = make_math_node(group.nodes, "ADD", 400, 0, default_2 = 3000)
-group.links.new(math_kelvin_offset.inputs[0], math_kelvin_width.outputs[0])
-
+# Blackbody color
 blackbody = group.nodes.new("ShaderNodeBlackbody")
 blackbody.location = (600, 0)
-group.links.new(blackbody.inputs["Temperature"], math_kelvin_offset.outputs[0])
-group.links.new(group_outputs.inputs["Color"], blackbody.outputs["Color"])
-
+# Connect nodes
+connect_nodes(group, group_inputs, "Random",
+    0, math_kelvin_width, 0,
+    0, math_kelvin_offset, 0,
+    "Temperature", blackbody, "Color",
+    "Color", group_outputs)
+# Add group
 random_color = nodes.new("ShaderNodeGroup")
 random_color.node_tree = group
 random_color.location = (-600, -200)
-node_tree.links.new(random_color.inputs["Random"], random_splitter.outputs["Random 2"])
-node_tree.links.new(emission.inputs["Color"], random_color.outputs["Color"])
+
+# Connect color chain
+connect_nodes(node_tree, random_splitter, "Random 2",
+    "Random", random_color, "Color",
+    "Color", emission)
 
 # Set material
 obj2.active_material = bpy.data.materials["Star Shader"]
