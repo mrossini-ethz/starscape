@@ -6,6 +6,21 @@ import mathutils
 
 ### Helper function ########################################################################
 
+def create_or_reuse_mesh_object(name):
+    # Load/create the mesh
+    try:
+        mesh = bpy.data.meshes[name + "_mesh"]
+        mesh.clear_geometry()
+    except KeyError:
+        mesh = bpy.data.meshes.new(name + "_mesh")
+    # Load/create the object
+    try:
+        obj = bpy.data.objects[name]
+    except KeyError:
+        obj = bpy.data.objects.new(name, mesh)
+        bpy.context.collection.objects.link(obj)
+    return obj
+
 def random_spherical_coordinates():
     phi = random.random() * 2 * math.pi
     theta = math.asin(2 * random.random() - 1)
@@ -88,15 +103,13 @@ def generate_starscape():
         x, y, z = spherical_to_cartesian_coordinates(1, phi, theta)
         vertices.append((x, y, z))
 
-    # Create a new mesh
-    mesh = bpy.data.meshes.new("stars_mesh")
-    # Add the mesh to a new object
-    obj = bpy.data.objects.new("stars", mesh)
+    # Load/create the star location mesh
+    stars_obj = create_or_reuse_mesh_object("stars")
     # Set the mesh to the star data
-    mesh.from_pydata(vertices, [], [])
+    stars_obj.data.from_pydata(vertices, [], [])
 
     # Set vertex normals
-    for v in mesh.vertices:
+    for v in stars_obj.data.vertices:
         v.normal = v.co
 
     # Add a star template
@@ -107,9 +120,8 @@ def generate_starscape():
     vertices.append((+0, 0, +2 * s))
     vertices.append((-q, 0, -1 * s))
     vertices.append((+q, 0, -1 * s))
-    mesh = bpy.data.meshes.new("star_template_mesh")
-    obj2 = bpy.data.objects.new("star_template", mesh)
-    mesh.from_pydata(vertices, [(0, 1), (0, 2), (1, 2)], [(0, 1, 2)])
+    template_obj = create_or_reuse_mesh_object("star_template")
+    template_obj.data.from_pydata(vertices, [(0, 1), (0, 2), (1, 2)], [(0, 1, 2)])
 
     ### Material ###########################################################################
 
@@ -220,18 +232,19 @@ def generate_starscape():
         "Color", emission)
 
     # Set material
-    obj2.active_material = bpy.data.materials["Star Shader"]
+    template_obj.active_material = bpy.data.materials["Star Shader"]
 
     ### Constraints and relationships ######################################################
 
     # Add location constraint
     # This keeps the stars fixed relatve to the camera
-    constraint = obj.constraints.new(type="COPY_LOCATION")
+    stars_obj.constraints.clear()
+    constraint = stars_obj.constraints.new(type="COPY_LOCATION")
     constraint.target = obj_camera = camera
 
     # Add driver to object scale for the stars
     # This makes the stars be as far away while still visible
-    fcurves = obj.driver_add("scale")
+    fcurves = stars_obj.driver_add("scale")
     for fcurve in fcurves:
         # Add a variable for the camera focal length
         var = fcurve.driver.variables.new()
@@ -247,7 +260,7 @@ def generate_starscape():
 
     # Add driver to object scale for the template
     # This keeps the star size independent from focal length and render resolution
-    fcurves = obj2.driver_add("scale")
+    fcurves = template_obj.driver_add("scale")
     for fcurve in fcurves:
         # Add a variable for the camera focal length
         var = fcurve.driver.variables.new()
@@ -289,18 +302,16 @@ def generate_starscape():
         fcurve.driver.expression = "50 / f * 2202.907 / max(x, y) / p * 100"
 
     # Set object relationship
-    obj2.parent = obj
-    obj.instance_type = "VERTS"
-    obj.use_instance_vertices_rotation = True
-    #obj.show_instancer_for_viewport = False
-    obj.show_instancer_for_render = False
+    template_obj.parent = stars_obj
+    stars_obj.instance_type = "VERTS"
+    stars_obj.use_instance_vertices_rotation = True
+    #stars_obj.show_instancer_for_viewport = False
+    stars_obj.show_instancer_for_render = False
 
     # Hide the template
-    obj2.hide_viewport = True
-    #obj2.hide_render = True
+    template_obj.hide_viewport = True
+    #template_obj.hide_render = True
     # Add the object
-    bpy.context.collection.objects.link(obj)
-    bpy.context.collection.objects.link(obj2)
 
     return True
 
