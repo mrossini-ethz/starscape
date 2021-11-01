@@ -91,6 +91,24 @@ def connect_nodes(tree, *args):
         input = args[3 * i + 2]
         tree.links.new(node_b.inputs[input], node_a.outputs[output])
 
+def make_group_inputs(group, x, y, *sockets):
+    if len(sockets) % 2 != 0:
+        raise Exception("Invalid number of arguments!")
+    node = group.nodes.new("NodeGroupInput")
+    node.location = (x, y)
+    for i in range(len(sockets) // 2):
+        group.inputs.new("NodeSocket" + sockets[2 * i], sockets[2 * i + 1])
+    return node
+
+def make_group_outputs(group, x, y, *sockets):
+    if len(sockets) % 2 != 0:
+        raise Exception("Invalid number of arguments!")
+    node = group.nodes.new("NodeGroupOutput")
+    node.location = (x, y)
+    for i in range(len(sockets) // 2):
+        group.outputs.new("NodeSocket" + sockets[2 * i], sockets[2 * i + 1])
+    return node
+
 # Create the new material "Star Shader"
 shader = bpy.data.materials["Star Shader"]
 if not shader:
@@ -118,12 +136,8 @@ math_intensity = make_math_node(nodes, "MULTIPLY", -600, 0, default_2 = 15)
 
 # Add a node group for random intensity
 group = bpy.data.node_groups.new("Random Intensity", "ShaderNodeTree")
-group_inputs = group.nodes.new("NodeGroupInput")
-group.inputs.new('NodeSocketFloat', "Random")
-group_inputs.location = (0, 0)
-group_outputs = group.nodes.new("NodeGroupOutput")
-group.outputs.new("NodeSocketFloat", "Intensity")
-group_outputs.location = (1200, 0)
+group_inputs = make_group_inputs(group, 0, 0, "Float", "Random")
+group_outputs = make_group_outputs(group, 1200, 0, "Float", "Intensity")
 # Add a math node to prepare random input
 math_inp_fact = make_math_node(group.nodes, "MULTIPLY", 200, 0, default_2 = 9100)
 # Add a math node to prepare input
@@ -147,13 +161,8 @@ random_magnitude = make_group_node(nodes, group, -800, 0)
 
 # Make node group to split single random value into two
 group = bpy.data.node_groups.new("Random Splitter", "ShaderNodeTree")
-group_inputs = group.nodes.new("NodeGroupInput")
-group.inputs.new('NodeSocketFloat', "Random")
-group_inputs.location = (0, 0)
-group_outputs = group.nodes.new("NodeGroupOutput")
-group.outputs.new("NodeSocketFloat", "Random 1")
-group.outputs.new("NodeSocketFloat", "Random 2")
-group_outputs.location = (600, 0)
+group_inputs = make_group_inputs(group, 0, 0, "Float", "Random")
+group_outputs = make_group_outputs(group, 600, 0, "Float", "Random 1", "Float", "Random 2")
 # Multiplication by large factor
 math_rsplit_mult = make_math_node(group.nodes, "MULTIPLY", 200, -100, default_2 = 1000)
 # Use only decimals
@@ -183,12 +192,8 @@ hide_node_outputs(geometry_input)
 
 # Make node group for star color
 group = bpy.data.node_groups.new("Random Star Color", "ShaderNodeTree")
-group_inputs = group.nodes.new("NodeGroupInput")
-group.inputs.new('NodeSocketFloat', "Random")
-group_inputs.location = (0, 0)
-group_outputs = group.nodes.new("NodeGroupOutput")
-group.outputs.new("NodeSocketColor", "Color")
-group_outputs.location = (800, 0)
+group_inputs = make_group_inputs(group, 0, 0, "Float", "Random")
+group_outputs = make_group_outputs(group, 800, 0, "Color", "Color")
 # Color temperature width
 math_kelvin_width = make_math_node(group.nodes, "MULTIPLY", 200, 0, default_2 = 17000)
 # Color temperature offset
