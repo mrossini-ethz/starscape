@@ -15,44 +15,6 @@ def spherical_to_cartesian_coordinates(radius, phi, theta):
     z = radius * math.sin(theta)
     return x, y, z
 
-# Get the scene camera
-camera = bpy.context.scene.camera
-if not camera or camera.data.type != "PERSP":
-    sys.exit(1)
-
-# Create stars positions (mesh data consisting only of vertices, radius = 1)
-vertices = []
-for i in range(100000):
-    # Generate a random location at random across the sky
-    phi, theta = random_spherical_coordinates()
-    x, y, z = spherical_to_cartesian_coordinates(1, phi, theta)
-    vertices.append((x, y, z))
-
-# Create a new mesh
-mesh = bpy.data.meshes.new("stars_mesh")
-# Add the mesh to a new object
-obj = bpy.data.objects.new("stars", mesh)
-# Set the mesh to the star data
-mesh.from_pydata(vertices, [], [])
-
-# Set vertex normals
-for v in mesh.vertices:
-    v.normal = v.co
-
-# Add a star template
-# Usa a triangle, because it uses the least amount of vertices and faces
-vertices = []
-s = 0.0002
-q = s * math.sqrt(3)
-vertices.append((+0, 0, +2 * s))
-vertices.append((-q, 0, -1 * s))
-vertices.append((+q, 0, -1 * s))
-mesh = bpy.data.meshes.new("star_template_mesh")
-obj2 = bpy.data.objects.new("star_template", mesh)
-mesh.from_pydata(vertices, [(0, 1), (0, 2), (1, 2)], [(0, 1, 2)])
-
-### Material ###############################################################################
-
 def hide_node_outputs(node):
     for socket in node.outputs:
         if not socket.is_linked:
@@ -108,6 +70,44 @@ def make_group_outputs(group, x, y, *sockets):
     for i in range(len(sockets) // 2):
         group.outputs.new("NodeSocket" + sockets[2 * i], sockets[2 * i + 1])
     return node
+
+# Get the scene camera
+camera = bpy.context.scene.camera
+if not camera or camera.data.type != "PERSP":
+    sys.exit(1)
+
+# Create stars positions (mesh data consisting only of vertices, radius = 1)
+vertices = []
+for i in range(100000):
+    # Generate a random location at random across the sky
+    phi, theta = random_spherical_coordinates()
+    x, y, z = spherical_to_cartesian_coordinates(1, phi, theta)
+    vertices.append((x, y, z))
+
+# Create a new mesh
+mesh = bpy.data.meshes.new("stars_mesh")
+# Add the mesh to a new object
+obj = bpy.data.objects.new("stars", mesh)
+# Set the mesh to the star data
+mesh.from_pydata(vertices, [], [])
+
+# Set vertex normals
+for v in mesh.vertices:
+    v.normal = v.co
+
+# Add a star template
+# Usa a triangle, because it uses the least amount of vertices and faces
+vertices = []
+s = 0.0002
+q = s * math.sqrt(3)
+vertices.append((+0, 0, +2 * s))
+vertices.append((-q, 0, -1 * s))
+vertices.append((+q, 0, -1 * s))
+mesh = bpy.data.meshes.new("star_template_mesh")
+obj2 = bpy.data.objects.new("star_template", mesh)
+mesh.from_pydata(vertices, [(0, 1), (0, 2), (1, 2)], [(0, 1, 2)])
+
+### Material ###############################################################################
 
 # Create the new material "Star Shader"
 shader = bpy.data.materials["Star Shader"]
