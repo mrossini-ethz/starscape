@@ -15,7 +15,7 @@ The add-on provides the following features:
 - Compatible with all kinds of world backgrounds
 
 ## Blender Artist thread
-[Link](https://blenderartists.org/forum/showthread.php?414359-Add-on-Camera-Calibration-using-Perspective-Views-of-Rectangles&p=3145913&viewfull=1#post3145913 "Link") to Blender Artist page
+[Link](https://blenderartists.org/t/starscape-add-on/1336930 "Link") to Blender Artist page
 
 ## Installation
 1. Download the latest [release](https://github.com/mrossini-ethz/starscape/releases) and save it in a directory of your convenience.
