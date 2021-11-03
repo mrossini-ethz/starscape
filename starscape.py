@@ -89,21 +89,26 @@ def make_group_outputs(group, x, y, *sockets):
 
 ### Main function ##########################################################################
 
-def generate_starscape():
+def generate_starscape(props):
     # Get the scene camera
     camera = bpy.context.scene.camera
     if not camera or camera.data.type != "PERSP":
         return False
 
     # Initialize random number generator
-    random.seed(0)
+    random.seed(props.random_seed)
 
     # Create stars positions (mesh data consisting only of vertices, radius = 1)
     vertices = []
-    for i in range(10000):
+    N = 1000 * props.star_density
+    if props.hemisphere:
+        N = N / 2
+    for i in range(round(N)):
         # Generate a random location at random across the sky
         phi, theta = random_spherical_coordinates()
         x, y, z = spherical_to_cartesian_coordinates(1, phi, theta)
+        if props.hemisphere:
+            z = abs(z)
         vertices.append((x, y, z))
 
     # Load/create the star location mesh
@@ -152,7 +157,7 @@ def generate_starscape():
     connect_nodes(node_tree, light_path, "Is Camera Ray", 0, math_lightpath)
 
     # Add a math node to control the intensity
-    math_intensity = make_math_node(nodes, "MULTIPLY", -600, 0, default_2 = 15)
+    math_intensity = make_math_node(nodes, "MULTIPLY", -600, 0, default_2 = 15 * props.star_intensity)
 
     # Add a node group for random intensity
     group = bpy.data.node_groups.new("Random Intensity", "ShaderNodeTree")
@@ -242,8 +247,9 @@ def generate_starscape():
     # Add location constraint
     # This keeps the stars fixed relatve to the camera
     stars_obj.constraints.clear()
-    constraint = stars_obj.constraints.new(type="COPY_LOCATION")
-    constraint.target = obj_camera = camera
+    if props.camera_lock:
+        constraint = stars_obj.constraints.new(type="COPY_LOCATION")
+        constraint.target = obj_camera = camera
 
     # Add driver to object scale for the stars
     # This makes the stars be as far away while still visible

@@ -12,4 +12,9 @@ class StarscapePanel(bpy.types.Panel):
         props = bpy.context.scene.starscape_properties
 
         layout = self.layout
+        layout.prop(props, "random_seed")
+        layout.prop(props, "star_density")
+        layout.prop(props, "star_intensity")
+        layout.prop(props, "hemisphere")
+        layout.prop(props, "camera_lock")
         layout.operator("world.starscape")

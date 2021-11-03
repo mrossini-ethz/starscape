@@ -8,7 +8,7 @@ Starscape is a [Blender](http://www.blender.org) add-on for adding stars to the 
 The add-on provides the following features:
 - Procedural generation of stars
 - Realistic brightness and colour distribution
-- Realistic number of stars in the sky
+- Realistic number of stars in the sky (but adjustable)
 - Stars are actual objects in the scene (no textures!)
 - Star appearance is independent from render resolution and camera focal length (point sources)
 - Appearance can be changed by hand after generation
@@ -37,18 +37,39 @@ Press 'Generate Starscape' in the panel. That's it! An object called 'Starscape'
 
 At the moment there are no options. This will change in the future.
 
+### Options
+
+#### Random Seed
+The stars are randomly generated. In order to get reproducible results, the random number generator is initialised with a seed value. If the random result is not pleasing in some way (e.g. because there are a bunch of stars too close together by chance), try changing this value.
+
+#### Star Density
+The star density can be different depending where you are within a given galaxy. The density value of 1 is used here to represent the conditions found here near the earth. If you set the density to 2 you will see twice as many stars. Note that increasing this number is not realistic in our part of space. Also note that complexity of the scene increases with this number.
+
+#### Star Intensity
+You can change the intensity of the stars using this value. At the moment, the value 1 is arbitrary. Note that the interpretation of the intensity value may change in the future to more realistically render stars with a given film exposure.
+
+#### Hemisphere
+For scenes on a planet or moon the stars below the horizon are not necessary. This option reduces the amount of computing resources needed.
+
+#### Lock To Camera
+Attaches the starscape object to the camera such that the stars remain fixed with respect to the camera. This should always be activated because stars are usually very far away from an observer and their movement is negligible with respect to the motion of the observer. If you have a star that is very close (such as the sun), you should model it separately.
+
 ## Planned features
 The following features are planned for the future:
-- Adjustable number of stars
-- Change the random seed
-- Adjustable star intensity
 - Increase intensity range to fainter stars
 - Add a milky way, i.e. a band of higher star density
 - Twinkling stars in animations
-- Create hemisphere only as an option
 - Change the star shape
 
 ## Changelog
+
+### Version 0.2
+Added basic options:
+- Random seed
+- Star density
+- Star intensity
+- Hemisphere
+- Camera lock
 
 ### Version 0.1
 First official release.

@@ -29,11 +29,12 @@ from . import starscape
 class StarscapeOperator(bpy.types.Operator):
     bl_idname = "world.starscape"
     bl_label = "Generate Starscape"
+    bl_description = "Generates a background with stars or updates an existing starscape."
 
     def execute(self, context):
         # Get the properties
         props = bpy.context.scene.starscape_properties
 
-        starscape.generate_starscape()
+        starscape.generate_starscape(props)
 
         return {'FINISHED'}

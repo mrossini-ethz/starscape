@@ -1,4 +1,11 @@
 ChangeLog
 ---------
 
+Version 0.2: Added basic options
+- Random seed
+- Star density
+- Star intensity
+- Hemisphere
+- Camera lock
+
 Version 0.1: First official release.
