@@ -54,6 +54,9 @@ For scenes on a planet or moon the stars below the horizon are not necessary. Th
 #### Lock To Camera
 Attaches the starscape object to the camera such that the stars remain fixed with respect to the camera. This should always be activated because stars are usually very far away from an observer and their movement is negligible with respect to the motion of the observer. If you have a star that is very close (such as the sun), you should model it separately.
 
+#### Clear World Background
+Clears the world background material and sets the color to pure black.
+
 ## Planned features
 The following features are planned for the future:
 - Increase intensity range to fainter stars
@@ -62,6 +65,10 @@ The following features are planned for the future:
 - Change the star shape
 
 ## Changelog
+
+### Version 0.3
+Added options:
+- Clear world background
 
 ### Version 0.2
 Added basic options:

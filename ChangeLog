@@ -1,6 +1,9 @@
 ChangeLog
 ---------
 
+Version 0.2: Added options
+- Clear world background
+
 Version 0.2: Added basic options
 - Random seed
 - Star density

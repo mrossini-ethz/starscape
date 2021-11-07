@@ -25,7 +25,7 @@ bl_info = {
     "name": "Starscape",
     "author": "Marco Rossini",
     "version": (0, 2, 0),
-    # "warning": "This is an unreleased development version.",
+    "warning": "This is an unreleased development version.",
     "blender": (2, 90, 0),
     "location": "Properties > World Properties > Starscape",
     "description": "Creates a procedural starscape for use as a scene background",
