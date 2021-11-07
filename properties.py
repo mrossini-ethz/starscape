@@ -6,3 +6,4 @@ class StarscapeProperties(bpy.types.PropertyGroup):
     star_intensity: bpy.props.FloatProperty(name="Star Intensity", default=1.0, min=0.0, description="Brightness of the rendered stars.")
     hemisphere: bpy.props.BoolProperty(name="Hemisphere", default=False, description="Generate only stars above the horizon.")
     camera_lock: bpy.props.BoolProperty(name="Lock To Camera", default=True, description="Locks the starscape object to the camera.")
+    clear_world_bg: bpy.props.BoolProperty(name="Clear World Background", default=False, description="Clears the world background material.")

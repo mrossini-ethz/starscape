@@ -322,6 +322,13 @@ def generate_starscape(props):
     #template_obj.hide_render = True
     # Add the object
 
+    # Clear the world background
+    if props.clear_world_bg:
+        # Turn nodes off
+        bpy.context.world.use_nodes = False
+        # Set color to pure black
+        bpy.context.world.color = (0.0, 0.0, 0.0)
+
     return True
 
 if __name__ == "__main__":

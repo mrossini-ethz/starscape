@@ -17,4 +17,5 @@ class StarscapePanel(bpy.types.Panel):
         layout.prop(props, "star_intensity")
         layout.prop(props, "hemisphere")
         layout.prop(props, "camera_lock")
+        layout.prop(props, "clear_world_bg")
         layout.operator("world.starscape")
