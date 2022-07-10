@@ -116,10 +116,6 @@ def generate_starscape(props):
     # Set the mesh to the star data
     stars_obj.data.from_pydata(vertices, [], [])
 
-    # Set vertex normals
-    for v in stars_obj.data.vertices:
-        v.normal = v.co
-
     # Add a star template
     # Usa a triangle, because it uses the least amount of vertices and faces
     vertices = []
